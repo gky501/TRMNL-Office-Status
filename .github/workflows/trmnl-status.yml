@@ -4,9 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       filename:
-        description: "Exact PNG filename from /images"
+        description: "Pick a status image"
         required: true
-        default: "Stats_IN-OFFICE.png"
+        type: choice
+        options:
+          - Stats_IN-OFFICE.png
+          - Stats_IN-OFFICE-ALL.png
+          - Stats_WORK-FROM-HOME-ALL.png
+          - Stats_OFFSITE-MEETING-ALL.png
+          - Stats_CONFERENCE-ALL.png
+          - Stats_QUICK-CONVO-ALL.png
+          - Stats_OUT-IN-FIELD-ALL-PHOTOS.png
+          - Stats_STUDIO-ALL-OPEN-DOOR.png
+          - Stats_STUDIO-T-E-S-RECORDING.png
+          - Stats_OOO-CAMPING-PS.png
+          - Stats_OOO-VACATION-EO.png
+          - Stats_RED-STATUS-EO.png
+
 
 jobs:
   push:
