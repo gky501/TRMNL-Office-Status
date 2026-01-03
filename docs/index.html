@@ -1,1 +1,122 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TRMNL Office Status Picker</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      input { padding: 10px; width: min(700px, 100%); }
+      button { padding: 10px 14px; cursor: pointer; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 18px; }
+      .card { border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
+      .card img { width: 100%; height: 140px; object-fit: contain; background: #fafafa; border-radius: 8px; }
+      .name { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 8px; word-break: break-all; }
+      .status { margin-top: 10px; white-space: pre-wrap; font-size: 13px; }
+      .small { color: #666; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>TRMNL Office Status Picker</h1>
+    <p class="small">
+      Click an image to run your GitHub Action, which updates TRMNL.
+      Token is stored only in this browser.
+    </p>
+
+    <div class="row">
+      <input id="token" type="password" placeholder="Paste your NEW GitHub token (fine-grained, Actions: read/write for this repo)" />
+      <button id="save">Save token</button>
+      <button id="clear">Clear token</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <h2>Pick a status</h2>
+    <div class="grid" id="grid"></div>
+
+    <script>
+      const owner = "gky501";
+      const repo = "TRMNL-Office-Status";
+      const workflowFileName = "trmnl-status.yml";
+      const ref = "main";
+      const imagesPath = "images";
+
+      const files = [
+        "Stats_CONFERENCE-ALL.png",
+        "Stats_IN-OFFICE-ALL.png",
+        "Stats_IN-OFFICE.png",
+        "Stats_OFFSITE-MEETING-ALL.png",
+        "Stats_OOO-CAMPING-PS.png",
+        "Stats_OOO-VACATION-EO.png",
+        "Stats_OUT-IN-FIELD-ALL-PHOTOS.png",
+        "Stats_QUICK-CONVO-ALL.png",
+        "Stats_RED-STATUS-EO.png",
+        "Stats_STUDIO-ALL-OPEN-DOOR.png",
+        "Stats_STUDIO-T-E-S-RECORDING.png",
+        "Stats_WORK-FROM-HOME-ALL.png"
+      ];
+
+      const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
+      const statusEl = document.getElementById("status");
+      const tokenEl = document.getElementById("token");
+
+      function setStatus(msg) { statusEl.textContent = msg; }
+
+      const STORAGE_KEY = "trmnl_picker_token";
+      tokenEl.value = localStorage.getItem(STORAGE_KEY) || "";
+
+      document.getElementById("save").onclick = () => {
+        if (!tokenEl.value.trim()) return setStatus("Paste a token first.");
+        localStorage.setItem(STORAGE_KEY, tokenEl.value.trim());
+        setStatus("Token saved in this browser.");
+      };
+
+      document.getElementById("clear").onclick = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        tokenEl.value = "";
+        setStatus("Token cleared.");
+      };
+
+      async function dispatch(filename) {
+        const token = (localStorage.getItem(STORAGE_KEY) || "").trim();
+        if (!token) return setStatus("No token saved. Paste token and click Save token.");
+
+        setStatus(`Sending: ${filename} ...`);
+
+        const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${token}`,
+            "X-GitHub-Api-Version": "2022-11-28",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ref, inputs: { filename } })
+        });
+
+        if (res.status === 204) {
+          setStatus(`✅ Triggered workflow for: ${filename}\nNow wait for TRMNL to refresh.`);
+        } else {
+          const text = await res.text().catch(() => "");
+          setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
+        }
+      }
+
+      const grid = document.getElementById("grid");
+      files.forEach((f) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${rawBase + encodeURIComponent(f)}" alt="${f}">
+          <div class="name">${f}</div>
+          <button style="margin-top:10px; width:100%;">Set this status</button>
+        `;
+        card.querySelector("button").onclick = () => dispatch(f);
+        grid.appendChild(card);
+      });
+    </script>
+  </body>
+</html>
 
