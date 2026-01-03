@@ -1,0 +1,24 @@
+name: Set TRMNL Office Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: "Exact PNG filename from /images"
+        required: true
+        default: "Stats_IN-OFFICE.png"
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send image URL to TRMNL
+        env:
+          TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
+          FILENAME: ${{ github.event.inputs.filename }}
+        run: |
+          IMAGE_URL="https://raw.githubusercontent.com/gky501/TRMNL-Office-Status/main/images/${FILENAME}"
+          curl -sS "${TRMNL_WEBHOOK_URL}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"merge_variables\": {\"image_url\": \"${IMAGE_URL}\"}}"
