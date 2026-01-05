@@ -21,15 +21,15 @@
     <h1>TRMNL Office Status Picker</h1>
     <p class="small">
       Click an image to run your GitHub Action, which updates TRMNL.
-      Token is stored only in this browser.
+      Username is fake; token is stored only in this browser.
     </p>
 
-<div class="row">
-  <input id="username" placeholder="Username (anything)" />
-  <input id="token" type="password" placeholder="Password (your GitHub token)" />
-  <button id="unlock">Unlock</button>
-  <button id="lock">Lock</button>
-</div>
+    <div class="row">
+      <input id="username" placeholder="Username (anything)" />
+      <input id="token" type="password" placeholder="Password (your GitHub token)" />
+      <button id="unlock">Unlock</button>
+      <button id="lock">Lock</button>
+    </div>
 
     <div class="status" id="status"></div>
 
@@ -59,29 +59,47 @@
       ];
 
       const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
+
       const statusEl = document.getElementById("status");
       const tokenEl = document.getElementById("token");
+      const usernameEl = document.getElementById("username");
 
       function setStatus(msg) { statusEl.textContent = msg; }
 
-      const STORAGE_KEY = "trmnl_picker_token";
-      tokenEl.value = localStorage.getItem(STORAGE_KEY) || "";
+      const USER_KEY = "trmnl_picker_username";
+      const TOKEN_KEY = "trmnl_picker_token";
 
-      document.getElementById("save").onclick = () => {
-        if (!tokenEl.value.trim()) return setStatus("Paste a token first.");
-        localStorage.setItem(STORAGE_KEY, tokenEl.value.trim());
-        setStatus("Token saved in this browser.");
+      // Pre-fill username, but do NOT pre-fill the visible token box
+      usernameEl.value = localStorage.getItem(USER_KEY) || "";
+      tokenEl.value = "";
+
+      document.getElementById("unlock").onclick = () => {
+        const u = (usernameEl.value || "").trim();
+        const t = (tokenEl.value || "").trim();
+
+        if (!u) return setStatus("Enter any username (it does not validate).");
+        if (!t) return setStatus("Paste your GitHub token into Password.");
+
+        localStorage.setItem(USER_KEY, u);
+        localStorage.setItem(TOKEN_KEY, t);
+
+        // clear visible token field after saving
+        tokenEl.value = "";
+        setStatus(`Unlocked as "${u}".`);
       };
 
-      document.getElementById("clear").onclick = () => {
-        localStorage.removeItem(STORAGE_KEY);
+      document.getElementById("lock").onclick = () => {
+        localStorage.removeItem(TOKEN_KEY);
         tokenEl.value = "";
-        setStatus("Token cleared.");
+        setStatus("Locked. Token removed from this browser.");
       };
 
       async function dispatch(filename) {
-        const token = (localStorage.getItem(STORAGE_KEY) || "").trim();
-        if (!token) return setStatus("No token saved. Paste token and click Save token.");
+        const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
+        if (!token) {
+          setStatus('Locked. Enter username + token, then click "Unlock".');
+          return;
+        }
 
         setStatus(`Sending: ${filename} ...`);
 
@@ -120,4 +138,3 @@
     </script>
   </body>
 </html>
-
