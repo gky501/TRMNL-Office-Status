@@ -8,8 +8,8 @@ on:
         required: true
         type: choice
         options:
-          - Stats_IN-OFFICE.png
-          - Stats_IN-OFFICE-ALL.png
+          - IN-OFFICE.png
+          - IN-OFFICE-MEETING.png
           - Stats_WORK-FROM-HOME-ALL.png
           - Stats_OFFSITE-MEETING-ALL.png
           - Stats_CONFERENCE-ALL.png
