@@ -133,9 +133,179 @@
     <!-- CONTENT -->
     <div id="container"></div>
 
-    <script>
-      // NOTE: JS logic will be handled next step.
-    </script>
+<script>
+  const owner = "gky501";
+  const repo = "TRMNL-Office-Status";
+  const workflowFileName = "trmnl-status.yml";
+  const ref = "main";
+  const imagesPath = "images";
+  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
+
+  const sections = {
+    "IN OFFICE": [
+      "IN-OFFICE.png",
+      "IN-OFFICE-MEETING.png",
+      "OUT-IN-FIELD-PHOTOG.png",
+      "OFFSITE-MEETING.png",
+      "STUDIO-OPEN-DOOR.png",
+      "STUDIO-RECORDING.png",
+      "BUSY-BUT-AVAL.png",
+      "QUICK-CONVO.png",
+      "RED-STATUS.png"
+    ],
+    "ALT WORK LOC.": [
+      "CONFERENCE.png",
+      "WORK-FROM-HOME.png"
+    ],
+    "RETURNING ON…": [
+      "BACK-MONDAY.png",
+      "BACK-TUESDAY.png",
+      "BACK-WEDNESDAY.png",
+      "BACK-THURSDAY.png",
+      "BACK-FRIDAY.png"
+    ],
+    "BE RIGHT BACK": [
+      "BRB-0800.png",
+      "BRB-0900.png",
+      "BRB-1000.png",
+      "BRB-1100.png",
+      "BRB-1200.png",
+      "BRB-1300.png",
+      "BRB-1400.png",
+      "BRB-1500.png",
+      "BRB-1600.png",
+      "BRB-1700.png"
+    ],
+    "OUT": [
+      "OUT-4-DAY.png",
+      "OUT-4-WKND.png",
+      "OOO-CAMPING.png",
+      "OOO-VACATION.png"
+    ]
+  };
+
+  const statusEl = document.getElementById("status");
+  const tokenEl = document.getElementById("token");
+  const usernameEl = document.getElementById("username");
+  const searchEl = document.getElementById("search");
+  const container = document.getElementById("container");
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  const USER_KEY = "trmnl_picker_username";
+  const TOKEN_KEY = "trmnl_picker_token";
+
+  // Prefill username; do not prefill visible token input
+  usernameEl.value = localStorage.getItem(USER_KEY) || "";
+  tokenEl.value = "";
+
+  document.getElementById("unlock").onclick = () => {
+    const u = (usernameEl.value || "").trim();
+    const t = (tokenEl.value || "").trim();
+
+    if (!u) return setStatus("Enter any username (it does not validate).");
+    if (!t) return setStatus("Paste your GitHub token into Password.");
+
+    localStorage.setItem(USER_KEY, u);
+    localStorage.setItem(TOKEN_KEY, t);
+
+    tokenEl.value = "";
+    setStatus(`Unlocked as "${u}".`);
+  };
+
+  document.getElementById("lock").onclick = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    tokenEl.value = "";
+    setStatus("Locked. Token removed from this browser.");
+  };
+
+  async function dispatch(filename) {
+    const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
+    if (!token) {
+      setStatus('Locked. Enter username + token, then click "Unlock".');
+      return;
+    }
+
+    setStatus(`Sending: ${filename} ...`);
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ref, inputs: { filename } })
+    });
+
+    if (res.status === 204) {
+      setStatus(`✅ Triggered workflow for: ${filename}\nNow wait for TRMNL to refresh.`);
+    } else {
+      const text = await res.text().catch(() => "");
+      setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
+    }
+  }
+
+  function makeCard(filename) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.filename = filename.toLowerCase();
+
+    card.innerHTML = `
+      <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
+      <div class="name">${filename}</div>
+      <button style="margin-top:10px; width:100%;">Set this status</button>
+    `;
+
+    card.querySelector("button").onclick = () => dispatch(filename);
+    return card;
+  }
+
+  function render() {
+    container.innerHTML = "";
+
+    Object.entries(sections).forEach(([title, files]) => {
+      const h = document.createElement("div");
+      h.className = "section-title";
+      h.textContent = title;
+      container.appendChild(h);
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      container.appendChild(grid);
+
+      files.forEach((f) => grid.appendChild(makeCard(f)));
+    });
+  }
+
+  function applyFilter() {
+    const q = (searchEl.value || "").trim().toLowerCase();
+
+    // Filter cards by filename
+    document.querySelectorAll(".card").forEach((card) => {
+      const name = card.dataset.filename || "";
+      card.style.display = name.includes(q) ? "" : "none";
+    });
+
+    // Hide section headers + grids when empty
+    const titles = document.querySelectorAll(".section-title");
+    titles.forEach((titleEl) => {
+      const gridEl = titleEl.nextElementSibling;
+      const anyVisible = gridEl && gridEl.querySelector(".card:not([style*='display: none'])");
+      titleEl.style.display = anyVisible ? "" : "none";
+      if (gridEl) gridEl.style.display = anyVisible ? "" : "none";
+    });
+  }
+
+  // Build UI
+  render();
+
+  // Wire search
+  searchEl.addEventListener("input", applyFilter);
+</script>
+
 
   </body>
 </html>
