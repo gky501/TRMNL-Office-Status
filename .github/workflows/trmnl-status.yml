@@ -8,19 +8,45 @@ on:
         required: true
         type: choice
         options:
-        - CONFERENCE.png
-        - IN-OFFICE.png
-        - IN-OFFICE-MEETING.png
-        - OFFSITE-MEETING.png
-        - OOO-CAMPING.png
-        - OOO-VACATION.png
-        - OUT-IN-FIELD-PHOTOG.png
-        - QUICK-CONVO.png
-        - RED-STATUS.png
-        - STUDIO-OPEN-DOOR.png
-        - STUDIO-RECORDING.png
-        - WORK-FROM-HOME.png
+          # IN OFFICE
+          - IN-OFFICE.png
+          - IN-OFFICE-MEETING.png
+          - OUT-IN-FIELD-PHOTOG.png
+          - OFFSITE-MEETING.png
+          - STUDIO-OPEN-DOOR.png
+          - STUDIO-RECORDING.png
+          - BUSY-BUT-AVAL.png
+          - QUICK-CONVO.png
+          - RED-STATUS.png
 
+          # ALT WORK LOC.
+          - CONFERENCE.png
+          - WORK-FROM-HOME.png
+
+          # RETURNING ON…
+          - BACK-MONDAY.png
+          - BACK-TUESDAY.png
+          - BACK-WEDNESDAY.png
+          - BACK-THURSDAY.png
+          - BACK-FRIDAY.png
+
+          # BE RIGHT BACK
+          - BRB-0800.png
+          - BRB-0900.png
+          - BRB-1000.png
+          - BRB-1100.png
+          - BRB-1200.png
+          - BRB-1300.png
+          - BRB-1400.png
+          - BRB-1500.png
+          - BRB-1600.png
+          - BRB-1700.png
+
+          # OUT
+          - OUT-4-DAY.png
+          - OUT-4-WKND.png
+          - OOO-CAMPING.png
+          - OOO-VACATION.png
 
 jobs:
   push:
