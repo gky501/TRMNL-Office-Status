@@ -3,28 +3,124 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>TRMNL Office Status Picker</title>
+    <title>Gilkey TRMNL Office Status</title>
+
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-      input { padding: 10px; width: min(520px, 100%); }
-      button { padding: 10px 14px; cursor: pointer; }
-      .status { margin-top: 10px; white-space: pre-wrap; font-size: 13px; }
-      .small { color: #666; font-size: 12px; margin-top: 6px; }
-      .section-title { margin-top: 22px; margin-bottom: 8px; font-size: 25px; font-weight: bold; font-color: red; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
-      .card { border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
-      .card img { width: 100%; height: 140px; object-fit: contain; background: #fafafa; border-radius: 8px; }
-      .name { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 8px; word-break: break-all; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 24px;
+        background: #f6f7f9;
+      }
+
+      /* HEADER */
+      .header {
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+      }
+
+      .header p {
+        margin: 8px 0 14px;
+        font-size: 14px;
+        color: rgba(255,255,255,0.8);
+      }
+
+      .searchbar input {
+        padding: 12px;
+        width: 100%;
+        max-width: 520px;
+        border-radius: 10px;
+        border: none;
+        font-size: 14px;
+      }
+
+      /* AUTH ROW */
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      input {
+        padding: 10px;
+        width: min(520px, 100%);
+      }
+
+      button {
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+
+      .status {
+        margin-bottom: 14px;
+        font-size: 13px;
+      }
+
+      /* SECTIONS */
+      .section-title {
+        margin-top: 26px;
+        margin-bottom: 10px;
+        font-size: 22px;
+        font-weight: 800;
+        color: #b42318;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 12px;
+      }
+
+      .card img {
+        width: 100%;
+        height: 140px;
+        object-fit: contain;
+        background: #fafafa;
+        border-radius: 10px;
+      }
+
+      .name {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+        margin-top: 8px;
+        word-break: break-all;
+      }
     </style>
   </head>
 
   <body>
-    <h1>TRMNL Office Status Picker</h1>
-    <p class="small">
-      Click a status image to run your GitHub Action, which updates TRMNL. Username is fake (for your vault). Token is stored only in this browser.
-    </p>
 
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Gilkey TRMNL Office Status</h1>
+      <p>
+        Click a status image to update the TRMNL display.
+        Username is fake (for your vault). Token stays in this browser.
+      </p>
+
+      <div class="searchbar">
+        <input id="search" placeholder="Search statuses (office, brb, monday, studio...)" />
+      </div>
+    </div>
+
+    <!-- AUTH -->
     <div class="row">
       <input id="username" placeholder="Username (anything)" />
       <input id="token" type="password" placeholder="Password (your GitHub token)" />
@@ -34,147 +130,12 @@
 
     <div class="status" id="status"></div>
 
-    <h2 style="margin-top:18px;">Pick a status</h2>
+    <!-- CONTENT -->
     <div id="container"></div>
 
     <script>
-      const owner = "gky501";
-      const repo = "TRMNL-Office-Status";
-      const workflowFileName = "trmnl-status.yml";
-      const ref = "main";
-      const imagesPath = "images";
-      const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
-
-      const sections = {
-        "IN OFFICE": [
-          "IN-OFFICE.png",
-          "IN-OFFICE-MEETING.png",
-          "OUT-IN-FIELD-PHOTOG.png",
-          "OFFSITE-MEETING.png",
-          "STUDIO-OPEN-DOOR.png",
-          "STUDIO-RECORDING.png",
-          "BUSY-BUT-AVAL.png",
-          "QUICK-CONVO.png",
-          "RED-STATUS.png"
-        ],
-        "ALT WORK LOC.": [
-          "CONFERENCE.png",
-          "WORK-FROM-HOME.png"
-        ],
-        "RETURNING ON…": [
-          "BACK-MONDAY.png",
-          "BACK-TUESDAY.png",
-          "BACK-WEDNESDAY.png",
-          "BACK-THURSDAY.png",
-          "BACK-FRIDAY.png"
-        ],
-        "BE RIGHT BACK": [
-          "BRB-0800.png",
-          "BRB-0900.png",
-          "BRB-1000.png",
-          "BRB-1100.png",
-          "BRB-1200.png",
-          "BRB-1300.png",
-          "BRB-1400.png",
-          "BRB-1500.png",
-          "BRB-1600.png",
-          "BRB-1700.png"
-        ],
-        "OUT": [
-          "OUT-4-DAY.png",
-          "OUT-4-WKND.png",
-          "OOO-CAMPING.png",
-          "OOO-VACATION.png"
-        ]
-      };
-
-      const statusEl = document.getElementById("status");
-      const tokenEl = document.getElementById("token");
-      const usernameEl = document.getElementById("username");
-      const container = document.getElementById("container");
-
-      function setStatus(msg) { statusEl.textContent = msg; }
-
-      const USER_KEY = "trmnl_picker_username";
-      const TOKEN_KEY = "trmnl_picker_token";
-
-      usernameEl.value = localStorage.getItem(USER_KEY) || "";
-      tokenEl.value = "";
-
-      document.getElementById("unlock").onclick = () => {
-        const u = (usernameEl.value || "").trim();
-        const t = (tokenEl.value || "").trim();
-
-        if (!u) return setStatus("Enter any username (it does not validate).");
-        if (!t) return setStatus("Paste your GitHub token into Password.");
-
-        localStorage.setItem(USER_KEY, u);
-        localStorage.setItem(TOKEN_KEY, t);
-
-        tokenEl.value = "";
-        setStatus(`Unlocked as "${u}".`);
-      };
-
-      document.getElementById("lock").onclick = () => {
-        localStorage.removeItem(TOKEN_KEY);
-        tokenEl.value = "";
-        setStatus("Locked. Token removed from this browser.");
-      };
-
-      async function dispatch(filename) {
-        const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
-        if (!token) {
-          setStatus('Locked. Enter username + token, then click "Unlock".');
-          return;
-        }
-
-        setStatus(`Sending: ${filename} ...`);
-
-        const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Accept": "application/vnd.github+json",
-            "Authorization": `Bearer ${token}`,
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ref, inputs: { filename } })
-        });
-
-        if (res.status === 204) {
-          setStatus(`✅ Triggered workflow for: ${filename}\nNow wait for TRMNL to refresh.`);
-        } else {
-          const text = await res.text().catch(() => "");
-          setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
-        }
-      }
-
-      function makeCard(filename) {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
-          <div class="name">${filename}</div>
-          <button style="margin-top:10px; width:100%;">Set this status</button>
-        `;
-        card.querySelector("button").onclick = () => dispatch(filename);
-        return card;
-      }
-
-      // Render sections
-      Object.entries(sections).forEach(([title, files]) => {
-        const h = document.createElement("div");
-        h.className = "section-title";
-        h.textContent = title;
-        container.appendChild(h);
-
-        const grid = document.createElement("div");
-        grid.className = "grid";
-        container.appendChild(grid);
-
-        files.forEach((f) => grid.appendChild(makeCard(f)));
-      });
+      // NOTE: JS logic will be handled next step.
     </script>
+
   </body>
 </html>
