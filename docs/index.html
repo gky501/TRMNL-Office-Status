@@ -4,15 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Gilkey TRMNL Office Status</title>
-    <!-- Favicon -->
-<link rel="icon" href="icons/trmnl.ico" sizes="any">
-<!-- Apple Touch Icon (for Add to Home Screen) -->
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
-<!-- Optional Web App Meta -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="TRMNL Status">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Favicon -->
+    <link rel="icon" href="icons/trmnl.ico" sizes="any" />
+
+    <!-- Apple Touch Icon (for Add to Home Screen) -->
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+    <!-- Optional Web App Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TRMNL Status" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <style>
       body {
@@ -73,6 +75,7 @@
       .status {
         margin-bottom: 14px;
         font-size: 13px;
+        white-space: pre-wrap;
       }
 
       /* SECTIONS */
@@ -111,11 +114,23 @@
         margin-top: 8px;
         word-break: break-all;
       }
+
+      .current-box {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 14px;
+        font-size: 13px;
+      }
+
+      .current-box strong {
+        font-weight: 800;
+      }
     </style>
   </head>
 
   <body>
-
     <!-- HEADER -->
     <div class="header">
       <h1>Gilkey TRMNL Office Status</h1>
@@ -138,183 +153,202 @@
     </div>
 
     <div class="status" id="status"></div>
+    <div id="current"></div>
 
     <!-- CONTENT -->
     <div id="container"></div>
 
-<script>
-  const owner = "gky501";
-  const repo = "TRMNL-Office-Status";
-  const workflowFileName = "trmnl-status.yml";
-  const ref = "main";
-  const imagesPath = "images";
-  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
+    <script>
+      const owner = "gky501";
+      const repo = "TRMNL-Office-Status";
+      const workflowFileName = "trmnl-status.yml";
+      const ref = "main";
+      const imagesPath = "images";
+      const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
 
-  const sections = {
-    "IN OFFICE": [
-      "IN-OFFICE.png",
-      "IN-OFFICE-MEETING.png",
-      "OUT-IN-FIELD-PHOTOG.png",
-      "OFFSITE-MEETING.png",
-      "STUDIO-OPEN-DOOR.png",
-      "STUDIO-RECORDING.png",
-      "BUSY-BUT-AVAL.png",
-      "QUICK-CONVO.png",
-      "RED-STATUS.png"
-    ],
-    "ALT WORK LOC.": [
-      "CONFERENCE.png",
-      "WORK-FROM-HOME.png"
-    ],
-    "RETURNING ON…": [
-      "BACK-MONDAY.png",
-      "BACK-TUESDAY.png",
-      "BACK-WEDNESDAY.png",
-      "BACK-THURSDAY.png",
-      "BACK-FRIDAY.png"
-    ],
-    "BE RIGHT BACK": [
-      "BRB-0800.png",
-      "BRB-0900.png",
-      "BRB-1000.png",
-      "BRB-1100.png",
-      "BRB-1200.png",
-      "BRB-1300.png",
-      "BRB-1400.png",
-      "BRB-1500.png",
-      "BRB-1600.png",
-      "BRB-1700.png"
-    ],
-    "OUT": [
-      "OUT-4-DAY.png",
-      "OUT-4-WKND.png",
-      "OOO-CAMPING.png",
-      "OOO-VACATION.png"
-    ]
-  };
+      const sections = {
+        "IN OFFICE": [
+          "IN-OFFICE.png",
+          "IN-OFFICE-MEETING.png",
+          "OUT-IN-FIELD-PHOTOG.png",
+          "OFFSITE-MEETING.png",
+          "STUDIO-OPEN-DOOR.png",
+          "STUDIO-RECORDING.png",
+          "BUSY-BUT-AVAL.png",
+          "QUICK-CONVO.png",
+          "RED-STATUS.png"
+        ],
+        "ALT WORK LOC.": [
+          "CONFERENCE.png",
+          "WORK-FROM-HOME.png"
+        ],
+        "RETURNING ON…": [
+          "BACK-MONDAY.png",
+          "BACK-TUESDAY.png",
+          "BACK-WEDNESDAY.png",
+          "BACK-THURSDAY.png",
+          "BACK-FRIDAY.png"
+        ],
+        "BE RIGHT BACK": [
+          "BRB-0800.png",
+          "BRB-0900.png",
+          "BRB-1000.png",
+          "BRB-1100.png",
+          "BRB-1200.png",
+          "BRB-1300.png",
+          "BRB-1400.png",
+          "BRB-1500.png",
+          "BRB-1600.png",
+          "BRB-1700.png"
+        ],
+        "OUT": [
+          "OUT-4-DAY.png",
+          "OUT-4-WKND.png",
+          "OOO-CAMPING.png",
+          "OOO-VACATION.png"
+        ]
+      };
 
-  const statusEl = document.getElementById("status");
-  const tokenEl = document.getElementById("token");
-  const usernameEl = document.getElementById("username");
-  const searchEl = document.getElementById("search");
-  const container = document.getElementById("container");
+      const statusEl = document.getElementById("status");
+      const currentEl = document.getElementById("current");
+      const tokenEl = document.getElementById("token");
+      const usernameEl = document.getElementById("username");
+      const searchEl = document.getElementById("search");
+      const container = document.getElementById("container");
 
-  function setStatus(msg) { statusEl.textContent = msg; }
+      function setStatus(msg) { statusEl.textContent = msg; }
 
-  const USER_KEY = "trmnl_picker_username";
-  const TOKEN_KEY = "trmnl_picker_token";
+      const USER_KEY = "trmnl_picker_username";
+      const TOKEN_KEY = "trmnl_picker_token";
+      const LAST_SENT_KEY = "trmnl_last_sent";
 
-  // Prefill username; do not prefill visible token input
-  usernameEl.value = localStorage.getItem(USER_KEY) || "";
-  tokenEl.value = "";
+      function renderLastSent() {
+        const last = localStorage.getItem(LAST_SENT_KEY);
+        if (!last) {
+          currentEl.innerHTML = `<div class="current-box"><strong>Last sent:</strong> (none yet)</div>`;
+          return;
+        }
+        const imgUrl = rawBase + encodeURIComponent(last);
+        currentEl.innerHTML = `
+          <div class="current-box">
+            <strong>Last sent:</strong> ${last}<br>
+            <a href="${imgUrl}" target="_blank" rel="noopener">Preview image</a>
+          </div>
+        `;
+      }
 
-  document.getElementById("unlock").onclick = () => {
-    const u = (usernameEl.value || "").trim();
-    const t = (tokenEl.value || "").trim();
+      // Prefill username; do not prefill visible token input
+      usernameEl.value = localStorage.getItem(USER_KEY) || "";
+      tokenEl.value = "";
 
-    if (!u) return setStatus("Enter any username (it does not validate).");
-    if (!t) return setStatus("Paste your GitHub token into Password.");
+      document.getElementById("unlock").onclick = () => {
+        const u = (usernameEl.value || "").trim();
+        const t = (tokenEl.value || "").trim();
 
-    localStorage.setItem(USER_KEY, u);
-    localStorage.setItem(TOKEN_KEY, t);
+        if (!u) return setStatus("Enter any username (it does not validate).");
+        if (!t) return setStatus("Paste your GitHub token into Password.");
 
-    tokenEl.value = "";
-    setStatus(`Unlocked as "${u}".`);
-  };
+        localStorage.setItem(USER_KEY, u);
+        localStorage.setItem(TOKEN_KEY, t);
 
-  document.getElementById("lock").onclick = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    tokenEl.value = "";
-    setStatus("Locked. Token removed from this browser.");
-  };
+        tokenEl.value = "";
+        setStatus(`Unlocked as "${u}".`);
+      };
 
-  async function dispatch(filename) {
-    const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
-    if (!token) {
-      setStatus('Locked. Enter username + token, then click "Unlock".');
-      return;
-    }
+      document.getElementById("lock").onclick = () => {
+        localStorage.removeItem(TOKEN_KEY);
+        tokenEl.value = "";
+        setStatus("Locked. Token removed from this browser.");
+      };
 
-    setStatus(`Sending: ${filename} ...`);
+      async function dispatch(filename) {
+        const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
+        if (!token) {
+          setStatus('Locked. Enter username + token, then click "Unlock".');
+          return;
+        }
 
-    const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Accept": "application/vnd.github+json",
-        "Authorization": `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ ref, inputs: { filename } })
-    });
+        setStatus(`Sending: ${filename} ...`);
 
-    if (res.status === 204) {
-      setStatus(`✅ Triggered workflow for: ${filename}\nNow wait for TRMNL to refresh.`);
-    } else {
-      const text = await res.text().catch(() => "");
-      setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
-    }
-  }
+        const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${token}`,
+            "X-GitHub-Api-Version": "2022-11-28",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ref, inputs: { filename } })
+        });
 
-  function makeCard(filename) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.dataset.filename = filename.toLowerCase();
+        if (res.status === 204) {
+          localStorage.setItem(LAST_SENT_KEY, filename);
+          renderLastSent();
+          setStatus(`✅ Triggered workflow for: ${filename}\nNow wait for TRMNL to refresh.`);
+        } else {
+          const text = await res.text().catch(() => "");
+          setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
+        }
+      }
 
-    card.innerHTML = `
-      <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
-      <div class="name">${filename}</div>
-      <button style="margin-top:10px; width:100%;">Set this status</button>
-    `;
+      function makeCard(filename) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.filename = filename.toLowerCase();
 
-    card.querySelector("button").onclick = () => dispatch(filename);
-    return card;
-  }
+        card.innerHTML = `
+          <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
+          <div class="name">${filename}</div>
+          <button style="margin-top:10px; width:100%;">Set this status</button>
+        `;
 
-  function render() {
-    container.innerHTML = "";
+        card.querySelector("button").onclick = () => dispatch(filename);
+        return card;
+      }
 
-    Object.entries(sections).forEach(([title, files]) => {
-      const h = document.createElement("div");
-      h.className = "section-title";
-      h.textContent = title;
-      container.appendChild(h);
+      function render() {
+        container.innerHTML = "";
 
-      const grid = document.createElement("div");
-      grid.className = "grid";
-      container.appendChild(grid);
+        Object.entries(sections).forEach(([title, files]) => {
+          const h = document.createElement("div");
+          h.className = "section-title";
+          h.textContent = title;
+          container.appendChild(h);
 
-      files.forEach((f) => grid.appendChild(makeCard(f)));
-    });
-  }
+          const grid = document.createElement("div");
+          grid.className = "grid";
+          container.appendChild(grid);
 
-  function applyFilter() {
-    const q = (searchEl.value || "").trim().toLowerCase();
+          files.forEach((f) => grid.appendChild(makeCard(f)));
+        });
+      }
 
-    // Filter cards by filename
-    document.querySelectorAll(".card").forEach((card) => {
-      const name = card.dataset.filename || "";
-      card.style.display = name.includes(q) ? "" : "none";
-    });
+      function applyFilter() {
+        const q = (searchEl.value || "").trim().toLowerCase();
 
-    // Hide section headers + grids when empty
-    const titles = document.querySelectorAll(".section-title");
-    titles.forEach((titleEl) => {
-      const gridEl = titleEl.nextElementSibling;
-      const anyVisible = gridEl && gridEl.querySelector(".card:not([style*='display: none'])");
-      titleEl.style.display = anyVisible ? "" : "none";
-      if (gridEl) gridEl.style.display = anyVisible ? "" : "none";
-    });
-  }
+        // Filter cards by filename
+        document.querySelectorAll(".card").forEach((card) => {
+          const name = card.dataset.filename || "";
+          card.style.display = name.includes(q) ? "" : "none";
+        });
 
-  // Build UI
-  render();
+        // Hide section headers + grids when empty
+        document.querySelectorAll(".section-title").forEach((titleEl) => {
+          const gridEl = titleEl.nextElementSibling;
+          const anyVisible = gridEl && gridEl.querySelector(".card:not([style*='display: none'])");
+          titleEl.style.display = anyVisible ? "" : "none";
+          if (gridEl) gridEl.style.display = anyVisible ? "" : "none";
+        });
+      }
 
-  // Wire search
-  searchEl.addEventListener("input", applyFilter);
-</script>
+      // Build UI
+      render();
+      renderLastSent();
+      applyFilter();
 
-
+      // Wire search
+      searchEl.addEventListener("input", applyFilter);
+    </script>
   </body>
 </html>
