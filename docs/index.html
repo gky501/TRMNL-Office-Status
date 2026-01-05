@@ -7,21 +7,22 @@
     <style>
       body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
       .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-      input { padding: 10px; width: min(700px, 100%); }
+      input { padding: 10px; width: min(520px, 100%); }
       button { padding: 10px 14px; cursor: pointer; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 18px; }
+      .status { margin-top: 10px; white-space: pre-wrap; font-size: 13px; }
+      .small { color: #666; font-size: 12px; margin-top: 6px; }
+      .section-title { margin-top: 22px; margin-bottom: 8px; font-size: 18px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
       .card { border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
       .card img { width: 100%; height: 140px; object-fit: contain; background: #fafafa; border-radius: 8px; }
       .name { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 8px; word-break: break-all; }
-      .status { margin-top: 10px; white-space: pre-wrap; font-size: 13px; }
-      .small { color: #666; font-size: 12px; }
     </style>
   </head>
+
   <body>
     <h1>TRMNL Office Status Picker</h1>
     <p class="small">
-      Click an image to run your GitHub Action, which updates TRMNL.
-      The token is stored only in this browser.
+      Click a status image to run your GitHub Action, which updates TRMNL. Username is fake (for your vault). Token is stored only in this browser.
     </p>
 
     <div class="row">
@@ -33,8 +34,8 @@
 
     <div class="status" id="status"></div>
 
-    <h2>Pick a status</h2>
-    <div class="grid" id="grid"></div>
+    <h2 style="margin-top:18px;">Pick a status</h2>
+    <div id="container"></div>
 
     <script>
       const owner = "gky501";
@@ -42,34 +43,61 @@
       const workflowFileName = "trmnl-status.yml";
       const ref = "main";
       const imagesPath = "images";
-
-      const files = [
-        "CONFERENCE.png",
-        "IN-OFFICE.png",
-        "IN-OFFICE-MEETING.png",
-        "OFFSITE-MEETING.png",
-        "OOO-CAMPING.png",
-        "OOO-VACATION.png",
-        "OUT-IN-FIELD-PHOTOG.png",
-        "QUICK-CONVO.png",
-        "RED-STATUS.png",
-        "STUDIO-OPEN-DOOR.png",
-        "STUDIO-RECORDING.png",
-        "WORK-FROM-HOME.png"
-      ];
-
       const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
+
+      const sections = {
+        "IN OFFICE": [
+          "IN-OFFICE.png",
+          "IN-OFFICE-MEETING.png",
+          "OUT-IN-FIELD-PHOTOG.png",
+          "OFFSITE-MEETING.png",
+          "STUDIO-OPEN-DOOR.png",
+          "STUDIO-RECORDING.png",
+          "BUSY-BUT-AVAL.png",
+          "QUICK-CONVO.png",
+          "RED-STATUS.png"
+        ],
+        "ALT WORK LOC.": [
+          "CONFERENCE.png",
+          "WORK-FROM-HOME.png"
+        ],
+        "RETURNING ON…": [
+          "BACK-MONDAY.png",
+          "BACK-TUESDAY.png",
+          "BACK-WEDNESDAY.png",
+          "BACK-THURSDAY.png",
+          "BACK-FRIDAY.png"
+        ],
+        "BE RIGHT BACK": [
+          "BRB-0800.png",
+          "BRB-0900.png",
+          "BRB-1000.png",
+          "BRB-1100.png",
+          "BRB-1200.png",
+          "BRB-1300.png",
+          "BRB-1400.png",
+          "BRB-1500.png",
+          "BRB-1600.png",
+          "BRB-1700.png"
+        ],
+        "OUT": [
+          "OUT-4-DAY.png",
+          "OUT-4-WKND.png",
+          "OOO-CAMPING.png",
+          "OOO-VACATION.png"
+        ]
+      };
 
       const statusEl = document.getElementById("status");
       const tokenEl = document.getElementById("token");
       const usernameEl = document.getElementById("username");
+      const container = document.getElementById("container");
 
       function setStatus(msg) { statusEl.textContent = msg; }
 
       const USER_KEY = "trmnl_picker_username";
       const TOKEN_KEY = "trmnl_picker_token";
 
-      // Pre-fill username, but do NOT pre-fill the visible token box
       usernameEl.value = localStorage.getItem(USER_KEY) || "";
       tokenEl.value = "";
 
@@ -83,7 +111,6 @@
         localStorage.setItem(USER_KEY, u);
         localStorage.setItem(TOKEN_KEY, t);
 
-        // clear visible token field after saving
         tokenEl.value = "";
         setStatus(`Unlocked as "${u}".`);
       };
@@ -123,17 +150,30 @@
         }
       }
 
-      const grid = document.getElementById("grid");
-      files.forEach((f) => {
+      function makeCard(filename) {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <img src="${rawBase + encodeURIComponent(f)}" alt="${f}">
-          <div class="name">${f}</div>
+          <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
+          <div class="name">${filename}</div>
           <button style="margin-top:10px; width:100%;">Set this status</button>
         `;
-        card.querySelector("button").onclick = () => dispatch(f);
-        grid.appendChild(card);
+        card.querySelector("button").onclick = () => dispatch(filename);
+        return card;
+      }
+
+      // Render sections
+      Object.entries(sections).forEach(([title, files]) => {
+        const h = document.createElement("div");
+        h.className = "section-title";
+        h.textContent = title;
+        container.appendChild(h);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        container.appendChild(grid);
+
+        files.forEach((f) => grid.appendChild(makeCard(f)));
       });
     </script>
   </body>
