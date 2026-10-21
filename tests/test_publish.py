@@ -1,4 +1,6 @@
 import importlib.util
+import io
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -59,6 +61,54 @@ class PublishTests(unittest.TestCase):
                 publisher.main()
                 self.assertEqual(req.call_args_list[2].args[1], {'ref': 'refs/heads/trmnl-rendered', 'sha': 'main-sha'})
                 self.assertNotIn('sha', req.call_args_list[4].args[1])
+
+
+    def test_upload_uses_put_and_webhook_uses_post(self):
+        """Exercise real HTTP request construction; mock only the network."""
+        os.environ['MODE'] = 'custom'
+        captured = []
+
+        def respond(request, timeout):
+            captured.append(request)
+            if request.full_url.endswith('/git/ref/heads/trmnl-rendered'):
+                return io.BytesIO(b'{}')
+            if '?ref=trmnl-rendered' in request.full_url:
+                raise urllib.error.HTTPError(request.full_url, 404, 'not found', {}, None)
+            if request.full_url.endswith('/contents/custom-status.png'):
+                self.assertEqual(request.get_method(), 'PUT')
+                body = json.loads(request.data)
+                self.assertEqual(body['branch'], 'trmnl-rendered')
+                self.assertEqual(body['content'], 'cG5n')
+                return io.BytesIO(b'{"commit":{"sha":"uploaded-commit"}}')
+            self.assertEqual(request.full_url, 'https://example.test/webhook')
+            self.assertEqual(request.get_method(), 'POST')
+            self.assertIn('/uploaded-commit/custom-status.png', json.loads(request.data)['merge_variables']['image_url'])
+            self.assertIsNone(request.get_header('Authorization'))
+            return io.BytesIO(b'{}')
+
+        with patch.object(Path, 'read_bytes', return_value=b'png'):
+            with patch.object(publisher.urllib.request, 'urlopen', side_effect=respond):
+                publisher.main()
+        self.assertEqual([request.get_method() for request in captured], ['GET', 'GET', 'PUT', 'POST'])
+
+    def test_existing_image_upload_uses_put_with_previous_sha(self):
+        os.environ['MODE'] = 'custom'
+
+        def respond(request, timeout):
+            if request.full_url.endswith('/git/ref/heads/trmnl-rendered'):
+                return io.BytesIO(b'{}')
+            if '?ref=trmnl-rendered' in request.full_url:
+                return io.BytesIO(b'{"sha":"previous-image"}')
+            if request.full_url.endswith('/contents/custom-status.png'):
+                self.assertEqual(request.get_method(), 'PUT')
+                self.assertEqual(json.loads(request.data)['sha'], 'previous-image')
+                return io.BytesIO(b'{"commit":{"sha":"updated-commit"}}')
+            self.assertEqual(request.get_method(), 'POST')
+            return io.BytesIO(b'{}')
+
+        with patch.object(Path, 'read_bytes', return_value=b'png'):
+            with patch.object(publisher.urllib.request, 'urlopen', side_effect=respond):
+                publisher.main()
 
 
 if __name__ == '__main__':
