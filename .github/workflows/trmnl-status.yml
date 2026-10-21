@@ -3,9 +3,19 @@ name: Set TRMNL Office Status
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Use a library image or custom text"
+        type: choice
+        default: image
+        options: [image, custom]
+      status_json:
+        description: "Custom status settings (filled by the editor)"
+        required: false
+        default: '{}'
+        type: string
       filename:
         description: "Pick a status image"
-        required: true
+        required: false
         type: choice
         options:
           # IN OFFICE
@@ -49,17 +59,42 @@ on:
           - OOO-CAMPING.png
           - OOO-VACATION.png
 
+# Serialize updates to the generated image branch.
+concurrency:
+  group: trmnl-office-status
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
 jobs:
   push:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Send image URL to TRMNL
-        env:
-          TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
-          FILENAME: ${{ github.event.inputs.filename }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: inputs.mode == 'custom'
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        if: inputs.mode == 'custom'
+        with:
+          version: 10
+      - name: Install image renderer
+        if: inputs.mode == 'custom'
         run: |
-          IMAGE_URL="https://raw.githubusercontent.com/gky501/TRMNL-Office-Status/main/images/${FILENAME}"
-          curl -sS "${TRMNL_WEBHOOK_URL}" \
-            -H "Content-Type: application/json" \
-            -X POST \
-            -d "{\"merge_variables\": {\"image_url\": \"${IMAGE_URL}\"}}"
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Generate custom sign
+        if: inputs.mode == 'custom'
+        env:
+          STATUS_JSON: ${{ inputs.status_json }}
+        run: node scripts/render-status.cjs
+      - name: Publish image and send to TRMNL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
+          MODE: ${{ inputs.mode }}
+          FILENAME: ${{ inputs.filename }}
+        run: python3 scripts/publish-status.py
