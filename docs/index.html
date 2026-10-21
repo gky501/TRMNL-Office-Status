@@ -1,162 +1,26 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Gilkey TRMNL Office Status</title>
-
-    <link rel="stylesheet" href="editor.css" />
-    <!-- Favicon -->
-    <link rel="icon" href="icons/trmnl.ico" sizes="any" />
-
-    <!-- Apple Touch Icon (for Add to Home Screen) -->
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-
-    <!-- Optional Web App Meta -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="TRMNL Status" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-    <style>
-      body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        margin: 24px;
-        background: #f6f7f9;
-      }
-
-      /* HEADER */
-      .header {
-        background: #333366;
-        color: #ffffff;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-      }
-
-      .header h1 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 800;
-      }
-
-      .header p {
-        margin: 8px 0 14px;
-        font-size: 14px;
-        color: rgba(255,255,255,0.8);
-      }
-
-      .searchbar input {
-        padding: 12px;
-        width: 100%;
-        max-width: 520px;
-        border-radius: 10px;
-        border: none;
-        font-size: 14px;
-      }
-
-      /* AUTH ROW */
-      .row {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        align-items: center;
-        margin-bottom: 14px;
-      }
-
-      input {
-        padding: 10px;
-        width: min(520px, 100%);
-      }
-
-      button {
-        padding: 10px 14px;
-        cursor: pointer;
-      }
-
-      .status {
-        margin-bottom: 14px;
-        font-size: 13px;
-        white-space: pre-wrap;
-      }
-
-      /* SECTIONS */
-      .section-title {
-        margin-top: 26px;
-        margin-bottom: 10px;
-        font-size: 22px;
-        font-weight: 800;
-        color: #b42318;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 16px;
-      }
-
-      .card {
-        background: #ffffff;
-        border: 1px solid #ddd;
-        border-radius: 14px;
-        padding: 12px;
-      }
-
-      .card img {
-        width: 100%;
-        height: 140px;
-        object-fit: contain;
-        background: #fafafa;
-        border-radius: 10px;
-      }
-
-      .name {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 12px;
-        margin-top: 8px;
-        word-break: break-all;
-      }
-
-      .current-box {
-        background: #ffffff;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin-bottom: 14px;
-        font-size: 13px;
-      }
-
-      .current-box strong {
-        font-weight: 800;
-      }
-    </style>
-  </head>
-
-  <body>
-    <!-- HEADER -->
-    <div class="header">
-      <h1>Gilkey TRMNL Office Status</h1>
-      <p>
-        Create a custom sign or choose one of your original status images.
-        Enter Username and Token. Token stays in this browser.
-      </p>
-
-      <div class="searchbar">
-        <input id="search" placeholder="Search statuses (office, brb, monday, studio...)" />
-      </div>
-    </div>
-
-    <!-- AUTH -->
-    <div class="row">
-      <input id="username" placeholder="Username (anything)" />
-      <input id="token" type="password" placeholder="Password (your GitHub token)" />
-      <button id="unlock">Unlock</button>
-      <button id="lock">Lock</button>
-    </div>
-
-    <div class="status" id="status" role="status" aria-live="polite"></div>
-    <div id="current"></div>
-
-
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gilkey TRMNL Office Status</title>
+  <link rel="icon" href="icons/trmnl.ico" sizes="any" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="TRMNL Status" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="editor.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Gilkey TRMNL Office Status</h1>
+    <p>Create your sign. Send it now, or schedule it for later.</p>
+  </header>
+  <div class="row connection">
+    <label for="username">Name<input id="username" autocomplete="username" placeholder="Your name" /></label>
+    <label for="token">GitHub token<input id="token" type="password" autocomplete="off" placeholder="Paste your GitHub token" /></label>
+    <button id="unlock">Unlock</button><button id="lock">Lock</button>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
     <section class="editor" aria-labelledby="editor-heading">
       <h2 id="editor-heading">Make it your own</h2>
       <p>Your message, on your door. Start with a preset, then edit any detail.</p>
@@ -188,205 +52,33 @@
         </div>
       </div>
     </section>
-    <h2>Original image library</h2>
 
-    <!-- CONTENT -->
-    <div id="container"></div>
+    <section id="scheduling" class="editor" aria-labelledby="schedule-heading">
+      <h2 id="schedule-heading">Set it and go</h2>
+      <p>Schedule the sign shown in the editor above. Each schedule saves its own copy of the message and appearance.</p>
+      <p class="hint">Runs with your browser closed. GitHub checks about every five minutes and may run late; your display updates on its next TRMNL refresh. Saving schedules needs a GitHub token with <strong>Contents: read and write</strong> in addition to <strong>Actions: write</strong>. Saved messages and schedules are public in this repository.</p>
+      <div class="schedule-layout">
+        <div>
+          <label for="schedule-name">Schedule name</label><input id="schedule-name" maxlength="60" placeholder="e.g. Weekday mornings" />
+          <label for="schedule-kind">When</label><select id="schedule-kind"><option value="once">Once, on a date</option><option value="weekly">Repeat every week</option></select>
+          <div id="schedule-date-row"><label for="schedule-date">Date</label><input id="schedule-date" type="date" /></div>
+          <fieldset id="schedule-days" hidden><legend>Repeat on</legend><div class="contacts">
+            <label><input type="checkbox" name="schedule-day" value="0" checked /> Mon</label><label><input type="checkbox" name="schedule-day" value="1" checked /> Tue</label><label><input type="checkbox" name="schedule-day" value="2" checked /> Wed</label><label><input type="checkbox" name="schedule-day" value="3" checked /> Thu</label><label><input type="checkbox" name="schedule-day" value="4" checked /> Fri</label><label><input type="checkbox" name="schedule-day" value="5" /> Sat</label><label><input type="checkbox" name="schedule-day" value="6" /> Sun</label>
+          </div></fieldset>
+          <label for="schedule-time">Time</label><input id="schedule-time" type="time" value="08:00" />
+          <label for="schedule-zone">Timezone</label><select id="schedule-zone"><option value="America/Chicago">Central — Chicago</option><option value="America/New_York">Eastern — New York</option><option value="America/Denver">Mountain — Denver</option><option value="America/Los_Angeles">Pacific — Los Angeles</option><option value="America/Phoenix">Arizona — Phoenix</option><option value="UTC">UTC</option></select>
+          <div class="actions"><button id="schedule-save" class="primary">Schedule this sign</button><button id="schedule-cancel" hidden>Cancel edit</button></div>
+        </div>
+        <div><div class="schedule-list-heading"><h3>Saved schedules</h3><button id="schedule-refresh">Refresh schedules</button></div><div id="schedule-list"></div></div>
+      </div>
+      <div id="schedule-status" role="status" aria-live="polite">Unlock to load your saved schedules.</div>
+      <p class="hint">If several changes become due together, the latest one wins. Changes more than 24 hours overdue are skipped. Weekly schedules follow local daylight-saving time.</p>
+      <a href="https://github.com/gky501/TRMNL-Office-Status/actions/workflows/trmnl-schedule.yml" target="_blank" rel="noopener">View schedule activity ↗</a>
+    </section>
 
-    <script src="status-renderer.js"></script>
-    <script defer src="editor.js"></script>
-    <script>
-      const owner = "gky501";
-      const repo = "TRMNL-Office-Status";
-      const workflowFileName = "trmnl-status.yml";
-      const ref = "main";
-      const imagesPath = "images";
-      const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${imagesPath}/`;
-
-      const sections = {
-        "IN OFFICE": [
-          "IN-OFFICE.png",
-          "IN-OFFICE-MEETING.png",
-          "OUT-IN-FIELD-PHOTOG.png",
-          "OFFSITE-MEETING.png",
-          "STUDIO-OPEN-DOOR.png",
-          "STUDIO-RECORDING.png",
-          "BUSY-BUT-AVAL.png",
-          "QUICK-CONVO.png",
-          "RED-STATUS.png"
-        ],
-        "ALT WORK LOC.": [
-          "CONFERENCE.png",
-          "WORK-FROM-HOME.png",
-          "stats-PIO.png"
-        ],
-        "RETURNING ON…": [
-          "BACK-MONDAY.png",
-          "BACK-TUESDAY.png",
-          "BACK-WEDNESDAY.png",
-          "BACK-THURSDAY.png",
-          "BACK-FRIDAY.png"
-        ],
-        "BE RIGHT BACK": [
-          "BRB-0800.png",
-          "BRB-0900.png",
-          "BRB-1000.png",
-          "BRB-1100.png",
-          "BRB-1200.png",
-          "BRB-1300.png",
-          "BRB-1400.png",
-          "BRB-1500.png",
-          "BRB-1600.png",
-          "BRB-1700.png"
-        ],
-        "OUT": [
-          "OUT-4-DAY.png",
-          "OUT-4-WKND.png",
-          "OOO-CAMPING.png",
-          "OOO-VACATION.png"
-        ]
-      };
-
-      const statusEl = document.getElementById("status");
-      const currentEl = document.getElementById("current");
-      const tokenEl = document.getElementById("token");
-      const usernameEl = document.getElementById("username");
-      const searchEl = document.getElementById("search");
-      const container = document.getElementById("container");
-
-      function setStatus(msg) { statusEl.textContent = msg; }
-
-      const USER_KEY = "trmnl_picker_username";
-      const TOKEN_KEY = "trmnl_picker_token";
-      const LAST_SENT_KEY = "trmnl_last_sent";
-
-      function renderLastSent() {
-        const last = localStorage.getItem(LAST_SENT_KEY);
-        if (!last) {
-          currentEl.innerHTML = `<div class="current-box"><strong>Last sent:</strong> (none yet)</div>`;
-          return;
-        }
-        const box = document.createElement("div");
-        box.className = "current-box";
-        box.textContent = "Last image workflow queued: " + last;
-        currentEl.replaceChildren(box);
-      }
-
-      // Prefill username; do not prefill visible token input
-      usernameEl.value = localStorage.getItem(USER_KEY) || "";
-      tokenEl.value = "";
-
-      document.getElementById("unlock").onclick = () => {
-        const u = (usernameEl.value || "").trim();
-        const t = (tokenEl.value || "").trim();
-
-        if (!u) return setStatus("Enter any username (it does not validate).");
-        if (!t) return setStatus("Paste your GitHub token into Password.");
-
-        localStorage.setItem(USER_KEY, u);
-        localStorage.setItem(TOKEN_KEY, t);
-
-        tokenEl.value = "";
-        setStatus(`Unlocked as "${u}".`);
-      };
-
-      document.getElementById("lock").onclick = () => {
-        localStorage.removeItem(TOKEN_KEY);
-        tokenEl.value = "";
-        setStatus("Locked. Token removed from this browser.");
-      };
-
-      async function dispatch(filename) {
-        const token = (localStorage.getItem(TOKEN_KEY) || "").trim();
-        if (!token) {
-          setStatus('Locked. Enter username + token, then click "Unlock".');
-          return;
-        }
-
-        setStatus(`Sending: ${filename} ...`);
-
-        const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowFileName}/dispatches`;
-        let res;
-        try { res = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Accept": "application/vnd.github+json",
-            "Authorization": `Bearer ${token}`,
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ref, inputs: { mode: "image", filename } })
-        });
-
-        } catch { setStatus("Could not connect to GitHub. Try again."); return; }
-
-        if (res.status === 204) {
-          localStorage.setItem(LAST_SENT_KEY, filename);
-          renderLastSent();
-          setStatus(`✅ Triggered workflow for: ${filename}\nCheck GitHub Actions for success, then wait for TRMNL to refresh.`);
-        } else {
-          const text = await res.text().catch(() => "");
-          setStatus(`❌ GitHub API error: ${res.status}\n${text}`);
-        }
-      }
-
-      function makeCard(filename) {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.dataset.filename = filename.toLowerCase();
-
-        card.innerHTML = `
-          <img src="${rawBase + encodeURIComponent(filename)}" alt="${filename}">
-          <div class="name">${filename}</div>
-          <button style="margin-top:10px; width:100%;">Set this status</button>
-        `;
-
-        card.querySelector("button").onclick = () => dispatch(filename);
-        return card;
-      }
-
-      function render() {
-        container.innerHTML = "";
-
-        Object.entries(sections).forEach(([title, files]) => {
-          const h = document.createElement("div");
-          h.className = "section-title";
-          h.textContent = title;
-          container.appendChild(h);
-
-          const grid = document.createElement("div");
-          grid.className = "grid";
-          container.appendChild(grid);
-
-          files.forEach((f) => grid.appendChild(makeCard(f)));
-        });
-      }
-
-      function applyFilter() {
-        const q = (searchEl.value || "").trim().toLowerCase();
-
-        // Filter cards by filename
-        document.querySelectorAll(".card").forEach((card) => {
-          const name = card.dataset.filename || "";
-          card.style.display = name.includes(q) ? "" : "none";
-        });
-
-        // Hide section headers + grids when empty
-        document.querySelectorAll(".section-title").forEach((titleEl) => {
-          const gridEl = titleEl.nextElementSibling;
-          const anyVisible = gridEl && gridEl.querySelector(".card:not([style*='display: none'])");
-          titleEl.style.display = anyVisible ? "" : "none";
-          if (gridEl) gridEl.style.display = anyVisible ? "" : "none";
-        });
-      }
-
-      // Build UI
-      render();
-      renderLastSent();
-      applyFilter();
-
-      // Wire search
-      searchEl.addEventListener("input", applyFilter);
-    </script>
-  </body>
+  <script src="status-renderer.js"></script>
+  <script src="connection.js"></script>
+  <script defer src="editor.js"></script>
+  <script defer src="schedules.js"></script>
+</body>
 </html>

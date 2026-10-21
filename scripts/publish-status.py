@@ -26,32 +26,26 @@ def main():
     if not webhook.startswith('https://'):
         raise ValueError('Configure the TRMNL_WEBHOOK_URL repository secret with an HTTPS webhook URL.')
     api = 'https://api.github.com/repos/' + repo
-    if os.environ.get('MODE', 'image') == 'custom':
-        branch = 'trmnl-rendered'
-        try:
-            request_json(api + '/git/ref/heads/' + branch, token=token)
-        except urllib.error.HTTPError as error:
-            if error.code != 404:
-                raise
-            source = request_json(api + '/git/ref/heads/main', token=token)
-            request_json(api + '/git/refs', {'ref': 'refs/heads/' + branch, 'sha': source['object']['sha']}, token)
-        endpoint = api + '/contents/custom-status.png'
-        sha = None
-        try:
-            sha = request_json(endpoint + '?ref=' + branch, token=token)['sha']
-        except urllib.error.HTTPError as error:
-            if error.code != 404:
-                raise
-        payload = {'message': 'Update custom TRMNL status', 'branch': branch, 'content': base64.b64encode(Path('custom-status.png').read_bytes()).decode()}
-        if sha:
-            payload['sha'] = sha
-        result = request_json(endpoint, payload, token, method='PUT')
-        image_url = f"https://raw.githubusercontent.com/{repo}/{result['commit']['sha']}/custom-status.png"
-    else:
-        filename = os.environ.get('FILENAME', '')
-        if Path(filename).name != filename or not filename.endswith('.png') or not (Path('images') / filename).is_file():
-            raise ValueError('Choose an existing status image.')
-        image_url = f"https://raw.githubusercontent.com/{repo}/{os.environ['GITHUB_SHA']}/images/{filename}"
+    branch = 'trmnl-rendered'
+    try:
+        request_json(api + '/git/ref/heads/' + branch, token=token)
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise
+        source = request_json(api + '/git/ref/heads/main', token=token)
+        request_json(api + '/git/refs', {'ref': 'refs/heads/' + branch, 'sha': source['object']['sha']}, token)
+    endpoint = api + '/contents/custom-status.png'
+    sha = None
+    try:
+        sha = request_json(endpoint + '?ref=' + branch, token=token)['sha']
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise
+    payload = {'message': 'Update custom TRMNL status', 'branch': branch, 'content': base64.b64encode(Path('custom-status.png').read_bytes()).decode()}
+    if sha:
+        payload['sha'] = sha
+    result = request_json(endpoint, payload, token, method='PUT')
+    image_url = f"https://raw.githubusercontent.com/{repo}/{result['commit']['sha']}/custom-status.png"
     request_json(webhook, {'merge_variables': {'image_url': image_url}})
     print('TRMNL accepted the webhook request. The sign will update on its next refresh.')
 

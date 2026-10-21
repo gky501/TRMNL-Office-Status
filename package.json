@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node tests/editor.cjs",
+    "test": "node tests/editor.cjs && node tests/schedules.cjs",
     "render": "node scripts/render-status.cjs"
   },
   "devDependencies": {

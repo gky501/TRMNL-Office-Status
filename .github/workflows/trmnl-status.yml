@@ -1,63 +1,11 @@
 name: Set TRMNL Office Status
-
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Use a library image or custom text"
-        type: choice
-        default: image
-        options: [image, custom]
       status_json:
         description: "Custom status settings (filled by the editor)"
-        required: false
-        default: '{}'
+        required: true
         type: string
-      filename:
-        description: "Pick a status image"
-        required: false
-        type: choice
-        options:
-          # IN OFFICE
-          - IN-OFFICE.png
-          - IN-OFFICE-MEETING.png
-          - OUT-IN-FIELD-PHOTOG.png
-          - OFFSITE-MEETING.png
-          - STUDIO-OPEN-DOOR.png
-          - STUDIO-RECORDING.png
-          - BUSY-BUT-AVAL.png
-          - QUICK-CONVO.png
-          - RED-STATUS.png
-
-          # ALT WORK LOC.
-          - CONFERENCE.png
-          - WORK-FROM-HOME.png
-          - stats-PIO.png
-
-          # RETURNING ON…
-          - BACK-MONDAY.png
-          - BACK-TUESDAY.png
-          - BACK-WEDNESDAY.png
-          - BACK-THURSDAY.png
-          - BACK-FRIDAY.png
-
-          # BE RIGHT BACK
-          - BRB-0800.png
-          - BRB-0900.png
-          - BRB-1000.png
-          - BRB-1100.png
-          - BRB-1200.png
-          - BRB-1300.png
-          - BRB-1400.png
-          - BRB-1500.png
-          - BRB-1600.png
-          - BRB-1700.png
-
-          # OUT
-          - OUT-4-DAY.png
-          - OUT-4-WKND.png
-          - OOO-CAMPING.png
-          - OOO-VACATION.png
 
 # Serialize updates to the generated image branch.
 concurrency:
@@ -74,20 +22,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        if: inputs.mode == 'custom'
         with:
           node-version: '22'
       - uses: pnpm/action-setup@v4
-        if: inputs.mode == 'custom'
         with:
           version: 10
       - name: Install image renderer
-        if: inputs.mode == 'custom'
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
       - name: Generate custom sign
-        if: inputs.mode == 'custom'
         env:
           STATUS_JSON: ${{ inputs.status_json }}
         run: node scripts/render-status.cjs
@@ -95,6 +39,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
-          MODE: ${{ inputs.mode }}
-          FILENAME: ${{ inputs.filename }}
         run: python3 scripts/publish-status.py

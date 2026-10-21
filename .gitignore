@@ -1,3 +1,6 @@
 node_modules/
 custom-status.png
 __pycache__/
+
+.schedule-state.json
+custom-status-input.json
