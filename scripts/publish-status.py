@@ -7,13 +7,13 @@ import urllib.error
 import urllib.request
 
 
-def request_json(url, payload=None, token=None):
+def request_json(url, payload=None, token=None, method=None):
     headers = {'Accept': 'application/vnd.github+json', 'User-Agent': 'trmnl-office-status'}
     if token:
         headers['Authorization'] = 'Bearer ' + token
     if payload is not None:
         headers['Content-Type'] = 'application/json'
-    request = urllib.request.Request(url, data=None if payload is None else json.dumps(payload).encode(), headers=headers)
+    request = urllib.request.Request(url, data=None if payload is None else json.dumps(payload).encode(), headers=headers, method=method)
     with urllib.request.urlopen(request, timeout=30) as response:
         raw = response.read()
         return json.loads(raw) if raw else {}
@@ -45,7 +45,7 @@ def main():
         payload = {'message': 'Update custom TRMNL status', 'branch': branch, 'content': base64.b64encode(Path('custom-status.png').read_bytes()).decode()}
         if sha:
             payload['sha'] = sha
-        result = request_json(endpoint, payload, token)
+        result = request_json(endpoint, payload, token, method='PUT')
         image_url = f"https://raw.githubusercontent.com/{repo}/{result['commit']['sha']}/custom-status.png"
     else:
         filename = os.environ.get('FILENAME', '')
