@@ -1,0 +1,27 @@
+* { box-sizing: border-box; }
+body { max-width: 1440px; margin: 24px auto; padding: 0 24px; color: #202332; }
+.header { background: #282b45; }
+.editor { background: white; border: 1px solid #ddd; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+.editor h2 { margin: 0 0 6px; font-size: 26px; }
+.editor p { color: #626678; font-size: 14px; }
+.editor-layout { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(300px, 1.5fr); gap: 30px; margin-top: 24px; }
+.editor label { display: block; font-weight: 650; font-size: 14px; margin-bottom: 8px; }
+.editor input:not([type=checkbox]), .editor textarea, .editor select { width: 100%; border: 1px solid #b8bdc9; border-radius: 8px; padding: 11px; font: inherit; margin-bottom: 18px; }
+.editor textarea { resize: vertical; min-height: 88px; }
+.editor fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+.editor legend { font-weight: 650; font-size: 14px; margin-bottom: 10px; }
+.contacts { display: flex; flex-wrap: wrap; gap: 16px; }
+.contacts label { font-weight: 400; }
+.contacts input { width: auto; }
+.preview-wrap { background: #e9e9ed; padding: 20px; border-radius: 12px; align-self: start; position: sticky; top: 20px; }
+.preview-wrap canvas { width: 100%; height: auto; display: block; box-shadow: 0 3px 14px #0002; }
+.preview-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 12px; color: #626678; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button { border: 1px solid #c5c8d0; border-radius: 8px; background: white; font: inherit; }
+button:hover { background: #eeeef5; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #7474cb; outline-offset: 2px; }
+button.primary { background: #333366; color: white; border-color: #333366; }
+button:disabled { opacity: .6; cursor: wait; }
+.editor .hint { font-size: 12px; line-height: 1.5; }
+#editor-status { white-space: pre-wrap; min-height: 24px; font-size: 14px; margin-top: 16px; }
+@media(max-width: 760px) { body { padding: 0 12px; margin: 12px auto; } .editor { padding: 16px; } .editor-layout { grid-template-columns: 1fr; } .preview-wrap { position: static; } }

@@ -1,0 +1,27 @@
+name: Test status editor
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test
+      - run: python3 -m unittest discover -s tests
+      - name: Verify PNG generation
+        env:
+          STATUS_JSON: '{"message":"IN THE OFFICE","subline":"COME ON IN","contacts":["Teams","Email"]}'
+        run: pnpm run render
