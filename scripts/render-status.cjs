@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const path = require('node:path');
 const fs = require('node:fs');
 (async () => {
-  const status = JSON.parse(process.env.STATUS_JSON || '{}');
+  const status = JSON.parse(process.env.STATUS_JSON || (process.env.STATUS_JSON_FILE ? fs.readFileSync(process.env.STATUS_JSON_FILE, 'utf8') : '{}'));
   if (!String(status.message || '').trim() || String(status.message).length > 100) throw new Error('Headline must contain 1–100 characters.');
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   try {

@@ -15,19 +15,9 @@ spec.loader.exec_module(publisher)
 
 class PublishTests(unittest.TestCase):
     def setUp(self):
-        self.env = patch.dict(os.environ, {'GITHUB_REPOSITORY': 'example/status', 'GH_TOKEN': 'test-token', 'TRMNL_WEBHOOK_URL': 'https://example.test/webhook', 'GITHUB_SHA': 'immutable-sha', 'MODE': 'image', 'FILENAME': 'IN-OFFICE.png'})
+        self.env = patch.dict(os.environ, {'GITHUB_REPOSITORY': 'example/status', 'GH_TOKEN': 'test-token', 'TRMNL_WEBHOOK_URL': 'https://example.test/webhook', 'GITHUB_SHA': 'immutable-sha'})
         self.env.start()
         self.addCleanup(self.env.stop)
-
-    def test_library_uses_immutable_url(self):
-        with patch.object(publisher, 'request_json', return_value={}) as req:
-            publisher.main()
-            self.assertEqual(req.call_args.args[1], {'merge_variables': {'image_url': 'https://raw.githubusercontent.com/example/status/immutable-sha/images/IN-OFFICE.png'}})
-
-    def test_reject_path_traversal(self):
-        os.environ['FILENAME'] = '../README.md'
-        with self.assertRaises(ValueError):
-            publisher.main()
 
     def test_missing_webhook_fails_before_publishing(self):
         os.environ['TRMNL_WEBHOOK_URL'] = ''
@@ -36,7 +26,6 @@ class PublishTests(unittest.TestCase):
         req.assert_not_called()
 
     def test_custom_image_updates_dedicated_branch(self):
-        os.environ['MODE'] = 'custom'
         with tempfile.TemporaryDirectory() as directory:
             old = os.getcwd()
             try:
@@ -53,7 +42,6 @@ class PublishTests(unittest.TestCase):
                 os.chdir(old)
 
     def test_first_custom_send_creates_branch(self):
-        os.environ['MODE'] = 'custom'
         missing = urllib.error.HTTPError('https://example.test', 404, 'not found', {}, None)
         with patch.object(Path, 'read_bytes', return_value=b'png'):
             responses = [missing, {'object': {'sha': 'main-sha'}}, {}, missing, {'commit': {'sha': 'first'}}, {}]
@@ -65,7 +53,6 @@ class PublishTests(unittest.TestCase):
 
     def test_upload_uses_put_and_webhook_uses_post(self):
         """Exercise real HTTP request construction; mock only the network."""
-        os.environ['MODE'] = 'custom'
         captured = []
 
         def respond(request, timeout):
@@ -92,7 +79,6 @@ class PublishTests(unittest.TestCase):
         self.assertEqual([request.get_method() for request in captured], ['GET', 'GET', 'PUT', 'POST'])
 
     def test_existing_image_upload_uses_put_with_previous_sha(self):
-        os.environ['MODE'] = 'custom'
 
         def respond(request, timeout):
             if request.full_url.endswith('/git/ref/heads/trmnl-rendered'):

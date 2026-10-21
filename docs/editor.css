@@ -25,3 +25,22 @@ button:disabled { opacity: .6; cursor: wait; }
 .editor .hint { font-size: 12px; line-height: 1.5; }
 #editor-status { white-space: pre-wrap; min-height: 24px; font-size: 14px; margin-top: 16px; }
 @media(max-width: 760px) { body { padding: 0 12px; margin: 12px auto; } .editor { padding: 16px; } .editor-layout { grid-template-columns: 1fr; } .preview-wrap { position: static; } }
+[hidden] { display: none !important; }
+.schedule-layout { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(260px, 1.5fr); gap: 30px; margin-top: 24px; }
+.schedule-card { border: 1px solid #d8dae1; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.schedule-card p { margin: 8px 0; overflow-wrap: anywhere; }
+.schedule-card .schedule-message { color: #25283c; }
+.schedule-list-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; }
+.schedule-list-heading h3 { margin: 0; }
+#schedule-status { margin: 18px 0; white-space: pre-wrap; }
+#schedule-days .contacts { gap: 10px; }
+@media(max-width: 760px) { .schedule-layout { grid-template-columns: 1fr; } }
+body { font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; background: #f6f7f9; }
+.header { color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+.header h1 { margin: 0; font-size: 28px; font-weight: 800; }
+.header p { color: #ffffffcc; margin: 8px 0 0; font-size: 14px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+.connection label { display: grid; gap: 6px; font-size: 13px; flex: 1 1 200px; }
+.connection input { width: 100%; padding: 10px; border: 1px solid #b8bdc9; border-radius: 8px; font: inherit; }
+button { padding: 10px 14px; cursor: pointer; }
+.status { font-size: 13px; white-space: pre-wrap; margin-bottom: 14px; }

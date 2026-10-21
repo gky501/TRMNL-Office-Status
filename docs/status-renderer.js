@@ -23,17 +23,17 @@
   function draw(canvas, value) {
     const s = normalize(value); canvas.width = 800; canvas.height = 480;
     const ctx = canvas.getContext('2d'); const bg = s.theme === 'dark' ? '#000' : '#fff'; const fg = s.theme === 'dark' ? '#fff' : '#000';
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, 800, 480); ctx.fillStyle = fg; ctx.fillRect(0, 0, 16, 294);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, 800, 480); ctx.fillStyle = fg;
     ctx.textBaseline = 'top';
-    const title = fit(ctx, s.message, 724, 244, 106, 900);
+    const title = fit(ctx, s.message, 724, 300, 112, 900);
     title.rows.forEach((line, i) => ctx.fillText(line, 42, 24 + i * title.size * 1.08));
-    ctx.fillStyle = fg; ctx.fillRect(0, 294, 800, 186); ctx.fillStyle = bg;
-    const sub = fit(ctx, s.subline, 720, 68, 42, 700);
-    sub.rows.forEach((line, i) => ctx.fillText(line, 34, 312 + i * sub.size * 1.08));
-    const note = fit(ctx, s.note, 720, 40, 22, 400);
-    note.rows.forEach((line, i) => ctx.fillText(line, 34, 386 + i * note.size * 1.08));
-    ctx.font = 'bold 18px Arial, sans-serif';
-    s.contacts.forEach((contact, i) => { const x = 34 + i * 182; ctx.strokeStyle = bg; ctx.lineWidth = 2; ctx.strokeRect(x, 435, 166, 30); ctx.fillText(contact.toUpperCase(), x + 12, 441); });
+    ctx.fillStyle = fg; ctx.fillRect(0, 354, 800, 126); ctx.fillStyle = bg;
+    const sub = fit(ctx, s.subline, 732, 44, 36, 700);
+    sub.rows.forEach((line, i) => ctx.fillText(line, 34, 364 + i * sub.size * 1.08));
+    const note = fit(ctx, s.note, 732, 24, 18, 400);
+    note.rows.forEach((line, i) => ctx.fillText(line, 34, 414 + i * note.size * 1.08));
+    ctx.font = 'bold 15px Arial, sans-serif';
+    s.contacts.forEach((contact, i) => { const x = 34 + i * 182; ctx.strokeStyle = bg; ctx.lineWidth = 2; ctx.strokeRect(x, 447, 166, 24); ctx.fillText(contact.toUpperCase(), x + 12, 452); });
     return s;
   }
   root.StatusRenderer = { defaults, normalize, draw };

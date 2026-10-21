@@ -31,11 +31,12 @@
     if (!get().message.trim()) return $('editor-status').textContent = 'Add a headline before sending.';
     const button = $('send-custom'); button.disabled = true; $('editor-status').textContent = 'Queuing your custom status…';
     try {
-      const res = await fetch('https://api.github.com/repos/gky501/TRMNL-Office-Status/actions/workflows/trmnl-status.yml/dispatches', { method: 'POST', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main', inputs: { mode: 'custom', status_json: JSON.stringify(get()) } }) });
+      const res = await fetch('https://api.github.com/repos/gky501/TRMNL-Office-Status/actions/workflows/trmnl-status.yml/dispatches', { method: 'POST', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main', inputs: { status_json: JSON.stringify(get()) } }) });
       if (res.status !== 204) throw new Error(`GitHub returned ${res.status}. Check your token and that the updated workflow is on main.`);
       $('editor-status').textContent = 'Workflow queued. Check its result using “View update progress”; TRMNL will show the image after a successful run and its next refresh.';
     } catch (err) { $('editor-status').textContent = err.message || 'Could not connect to GitHub. Try again.'; }
     finally { button.disabled = false; }
   };
+  window.OfficeStatusEditor = { get, load };
   options(); load(read(draftKey, renderer.defaults));
 })();

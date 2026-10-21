@@ -1,0 +1,52 @@
+name: Run scheduled TRMNL statuses
+on:
+  schedule:
+    - cron: '2-59/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+# Share the image-publishing lock with manual sends.
+concurrency:
+  group: trmnl-office-status
+  cancel-in-progress: false
+jobs:
+  scheduled-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for due schedules
+        id: due
+        run: python3 scripts/scheduler.py prepare
+      - uses: actions/setup-node@v4
+        if: steps.due.outputs.has_due == 'true'
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        if: steps.due.outputs.has_due == 'true'
+        with:
+          version: 10
+      - name: Install image renderer
+        if: steps.due.outputs.has_due == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Generate scheduled sign
+        if: steps.due.outputs.has_due == 'true'
+        env:
+          STATUS_JSON_FILE: custom-status-input.json
+        run: node scripts/render-status.cjs
+      - name: Recheck schedule before sending
+        id: current
+        if: steps.due.outputs.has_due == 'true'
+        run: python3 scripts/scheduler.py revalidate
+      - name: Send scheduled sign to TRMNL
+        if: steps.current.outputs.has_due == 'true'
+        env:
+          TRMNL_WEBHOOK_URL: ${{ secrets.TRMNL_WEBHOOK_URL }}
+        run: python3 scripts/publish-status.py
+      - name: Record successful send
+        if: steps.current.outputs.has_due == 'true'
+        run: python3 scripts/scheduler.py complete
