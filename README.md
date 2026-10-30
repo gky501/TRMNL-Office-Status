@@ -8,24 +8,24 @@ footer and an open headline area, without the old vertical bar.
 
 ## Set up
 
-1. Merge the editor and workflow changes into `main`. Keep GitHub Pages configured
-   to serve the `docs` folder on `main`.
+1. Follow [GitHub login setup](auth/README.md) to register the OAuth app and deploy
+   the editor and authentication service together on Cloudflare Workers. Use the
+   Worker URL instead of the old GitHub Pages URL.
 2. Keep the repository secret `TRMNL_WEBHOOK_URL` set to your TRMNL private plugin's
-   webhook URL. Its existing template must display `image_url`; no template change
-   is needed if sending custom signs already works.
-3. Allow GitHub Actions to write repository contents. Custom signs are committed
-   to the `trmnl-rendered` branch using the workflow's built-in token. Branch rules
-   must allow this branch to be created and updated by Actions.
-4. Open the Pages site and unlock it with a GitHub token that has **Actions: write**
-   permission for this repository. Add **Contents: read and write** to save and
-   manage schedules. The token stays in this browser until you click **Lock**.
+   webhook URL. Its existing template must display `image_url`.
+3. Allow GitHub Actions to write repository contents. Branch rules must allow
+   `trmnl-rendered` and `trmnl-schedules` to be created and updated by Actions.
+4. Open the deployed editor and click **Sign in with GitHub**. Only the configured
+   GitHub account can manage signs. Credentials stay on the server; the browser
+   holds an HttpOnly session cookie that expires after seven days. **Sign out**
+   removes the session. Old pasted tokens are removed from browser storage.
 5. Choose a preset, edit the text, and click **Send to TRMNL**. Follow **View update
    progress** to confirm the workflow succeeded. A queued workflow is not yet a
    device update. The device changes after the webhook succeeds and TRMNL refreshes.
 
 Custom signs and their text are public images in this public repository, including
 in Git history. Presets remain on the browser where you saved them. Downloads work
-without unlocking or sending. Browser font rendering can vary slightly from the
+without signing in or sending. Browser font rendering can vary slightly from the
 Linux workflow; both use the same canvas layout and fitting code.
 
 The workflow sends the generated PNG through the existing `image_url` merge
@@ -57,18 +57,17 @@ The **Set it and go** panel saves a copy of the currently edited sign. Choose a
 one-time date or a repeating weekly pattern, select the time and timezone, and
 click **Schedule this sign**. Central time (`America/Chicago`) is the default.
 You can edit, pause, resume, or delete saved schedules from any browser after
-unlocking. Editing a schedule loads its sign into the editor above. Later changes
+signing in. Editing a schedule loads its sign into the editor above. Later changes
 to a preset or draft do not change an existing schedule.
 
 Schedule storage lives in `schedules.json` on the dedicated `trmnl-schedules`
-branch. The editor creates this branch on the first save. Your fine-grained GitHub
-token now also needs **Contents: read and write** for this repository, alongside
-**Actions: write** for immediate sends. The workflow uses its own built-in token;
-your browser token is never saved in the schedule document. Branch rules must
+branch. The editor creates this branch on the first save. Your GitHub
+login authorizes public repository access for sending signs and saving schedules.
+The workflow uses its own built-in token; your login credentials are never saved
+in the schedule document. Branch rules must
 allow updates to `trmnl-schedules` as well as `trmnl-rendered`.
 
-Merge the scheduling workflow into `main` and leave GitHub Actions enabled. No
-additional service or secret is needed. The existing TRMNL webhook is reused.
+Merge the scheduling workflow into `main` and leave GitHub Actions enabled. The login service is separate from the scheduling runner. The existing TRMNL webhook is reused.
 Schedules are checked about every five minutes even with the browser closed.
 GitHub may delay or skip scheduled runs, and TRMNL has its own refresh interval;
 this feature does not promise exact-minute delivery. Use **View schedule activity**

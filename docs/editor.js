@@ -26,13 +26,12 @@
   $('custom-fields').addEventListener('input', update);
   $('download-status').onclick = () => { const a = document.createElement('a'); a.download = 'office-status.png'; a.href = $('status-preview').toDataURL('image/png'); a.click(); };
   $('send-custom').onclick = async () => {
-    const token = (localStorage.getItem('trmnl_picker_token') || '').trim();
-    if (!token) return $('editor-status').textContent = 'Enter your GitHub token above and click Unlock before sending.';
+    if (!OfficeAuth.user) return $('editor-status').textContent = 'Sign in with GitHub above before sending.';
     if (!get().message.trim()) return $('editor-status').textContent = 'Add a headline before sending.';
     const button = $('send-custom'); button.disabled = true; $('editor-status').textContent = 'Queuing your custom status…';
     try {
-      const res = await fetch('https://api.github.com/repos/gky501/TRMNL-Office-Status/actions/workflows/trmnl-status.yml/dispatches', { method: 'POST', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main', inputs: { status_json: JSON.stringify(get()) } }) });
-      if (res.status !== 204) throw new Error(`GitHub returned ${res.status}. Check your token and that the updated workflow is on main.`);
+      const res = await OfficeAuth.request('/actions/workflows/trmnl-status.yml/dispatches', { method: 'POST', headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main', inputs: { status_json: JSON.stringify(get()) } }) });
+      if (res.status !== 204) throw new Error(`GitHub returned ${res.status}. Check your repository access and that the updated workflow is on main.`);
       $('editor-status').textContent = 'Workflow queued. Check its result using “View update progress”; TRMNL will show the image after a successful run and its next refresh.';
     } catch (err) { $('editor-status').textContent = err.message || 'Could not connect to GitHub. Try again.'; }
     finally { button.disabled = false; }

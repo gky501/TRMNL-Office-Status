@@ -1,15 +1,16 @@
 const assert = require('node:assert/strict');
-const path = require('node:path');
+const setup = require('./browser-auth.cjs');
 const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   try {
     const page = await browser.newPage(); page.setDefaultTimeout(10000);
+    const signIn = await setup(page);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     let stored = null, revision = 0, branchExists = false, rejectWrite = false, staleWrite = false;
     const writes = [];
     await page.route('https://raw.githubusercontent.com/**', route => route.abort());
-    await page.route('https://api.github.com/**', async route => {
+    await page.route('https://office.test/api/**', async route => {
       const req = route.request(), url = req.url(), method = req.method();
       const json = (status, body) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
       if (url.includes('/git/ref/heads/trmnl-schedules')) return json(branchExists ? 200 : 404, { object: { sha: 'branch-sha' } });
@@ -26,10 +27,10 @@ const { chromium } = require('playwright');
       }
       return json(200, {});
     });
-    await page.goto('file://' + path.resolve('docs/index.html'), { waitUntil: 'domcontentloaded' });
+    await page.goto('https://office.test/', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => localStorage.clear()); await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.locator('#schedule-save').click(); assert.match(await page.locator('#schedule-status').textContent(), /Unlock/);
-    await page.locator('#username').fill('Test'); await page.locator('#token').fill('fake-test-token'); await page.locator('#unlock').click();
+    await page.locator('#schedule-save').click(); assert.match(await page.locator('#schedule-status').textContent(), /Sign in/);
+    await signIn();
     const idle = () => page.waitForFunction(() => !document.getElementById('schedule-save').disabled);
     await idle();
     await page.locator('#message').fill('OUT OF OFFICE 🌴'); await page.locator('#schedule-name').fill('Vacation');
@@ -59,7 +60,7 @@ const { chromium } = require('playwright');
     await page.locator('#schedule-refresh').click(); await idle(); await page.locator('#schedule-kind').selectOption('weekly');
     await page.setViewportSize({ width: 1280, height: 1100 }); if (process.env.SCHEDULE_SCREENSHOT) await page.locator('#scheduling').screenshot({ path: process.env.SCHEDULE_SCREENSHOT });
     await page.getByRole('button', { name: 'Delete', exact: true }).click(); await idle(); assert.equal(stored.entries.length, 0);
-    await page.locator('#lock').click(); assert.match(await page.locator('#schedule-status').textContent(), /Unlock/);
+    await page.locator('#lock').click(); await page.waitForFunction(() => !OfficeAuth.user); assert.match(await page.locator('#schedule-status').textContent(), /Sign in/);
     assert.deepEqual(errors, []); console.log('Schedule browser checks passed: create, reload, snapshot, edit, weekly days, pause/resume, deletion, errors, timezone, DST, and mobile.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exit(1); });

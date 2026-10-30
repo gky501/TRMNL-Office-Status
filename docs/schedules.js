@@ -1,15 +1,14 @@
 (() => {
   const $ = id => document.getElementById(id);
-  const api = 'https://api.github.com/repos/gky501/TRMNL-Office-Status';
   const branch = 'trmnl-schedules';
   let entries = [], editing = null, editingVersion = null, busy = false;
   const display = message => { $('schedule-status').textContent = message; };
-  function token() { const value = (localStorage.getItem('trmnl_picker_token') || '').trim(); if (!value) throw new Error('Unlock above to load or save schedules. Your token needs Contents: read and write, plus Actions: write.'); return value; }
+  function signedIn() { if (!OfficeAuth.user) throw new Error('Sign in with GitHub to load or save schedules.'); }
   async function request(path, method = 'GET', body) {
-    const res = await fetch(api + path, { method, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token()}`, 'X-GitHub-Api-Version': '2022-11-28', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    const res = await OfficeAuth.request(path, { method, headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
     if (!res.ok) {
-      if (res.status === 404) { const error = new Error('Schedule storage is not available. Check that your token has Contents: read and write for this repository.'); error.status = 404; throw error; }
-      throw new Error(res.status === 409 || res.status === 422 ? 'Schedules changed elsewhere. Refresh schedules, then try again.' : `GitHub returned ${res.status}. Check your token’s Contents: read and write permission.`);
+      if (res.status === 404) { const error = new Error('Schedule storage is not available. Check your repository access.'); error.status = 404; throw error; }
+      throw new Error(res.status === 409 || res.status === 422 ? 'Schedules changed elsewhere. Refresh schedules, then try again.' : `GitHub returned ${res.status}. Check your repository access.`);
     }
     return res.json();
   }
@@ -66,7 +65,7 @@
     }
   }
   $('schedule-save').onclick = () => action(async () => {
-    token(); const status = OfficeStatusEditor.get(); if (!status.message.trim()) throw new Error('Add a headline in the editor above first.');
+    signedIn(); const status = OfficeStatusEditor.get(); if (!status.message.trim()) throw new Error('Add a headline in the editor above first.');
     const entry = { id: editing || crypto.randomUUID(), name: $('schedule-name').value.trim() || status.message.replace(/\n/g, ' ').slice(0, 60), kind: $('schedule-kind').value, timezone: $('schedule-zone').value, time: $('schedule-time').value, status, enabled: true, updated_at: new Date().toISOString() };
     if (!entry.time) throw new Error('Choose a time.');
     if (entry.kind === 'once') { entry.at = toInstant($('schedule-date').value, entry.time, entry.timezone); if (Date.parse(entry.at) <= Date.now()) throw new Error('Choose a future date and time.'); }
@@ -75,11 +74,10 @@
     reset(); display('Schedule saved in GitHub. It runs with your browser closed; allow for GitHub delays and the next TRMNL refresh.');
   });
   $('schedule-cancel').onclick = reset; $('schedule-kind').onchange = kind;
-  const refresh = () => action(async () => { token(); const result = await documentState(); entries = result.doc.entries; render(); display('Schedules loaded from GitHub.'); });
+  const refresh = () => action(async () => { signedIn(); const result = await documentState(); entries = result.doc.entries; render(); display('Schedules loaded from GitHub.'); });
   $('schedule-refresh').onclick = refresh;
-  $('unlock').addEventListener('click', () => { if (localStorage.getItem('trmnl_picker_token')) refresh(); });
-  $('lock').addEventListener('click', () => { entries = []; reset(); render(); display('Unlock to load your saved schedules.'); });
+  window.addEventListener('authchange', () => { if (OfficeAuth.user) refresh(); else { entries = []; reset(); render(); display('Sign in with GitHub to load your saved schedules.'); } });
   $('schedule-date').value = wall(new Date(Date.now() + 86400000), 'America/Chicago').slice(0, 10);
-  kind(); render(); if (localStorage.getItem('trmnl_picker_token')) refresh();
+  kind(); render(); if (OfficeAuth.user) refresh();
   window.ScheduleTime = { toInstant }; // Shared time conversion entry point for browser checks.
 })();

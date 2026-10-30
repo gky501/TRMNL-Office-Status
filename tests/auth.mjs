@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import worker from '../auth/worker.mjs';
+const db = new Map();
+const env = { APP_ORIGIN: 'https://office.test', GITHUB_CLIENT_ID: 'id', GITHUB_CLIENT_SECRET: 'secret', ALLOWED_GITHUB_ID: '252633601', SESSIONS: { put: async (k,v) => db.set(k, JSON.parse(v)), get: async k => db.get(k), delete: async k => db.delete(k) }, ASSETS: { fetch: async () => new Response('editor') } };
+const call = (path, options = {}) => worker.fetch(new Request(env.APP_ORIGIN + path, options), env);
+const realFetch = globalThis.fetch;
+let calls = [];
+globalThis.fetch = async (url, options) => {
+  calls.push({ url, options });
+  if (url.includes('/access_token')) return Response.json({ access_token: 'server-only-token' });
+  if (url.endsWith('/user')) return Response.json({ id: 252633601, login: 'gky501' });
+  return new Response(null, { status: 204 });
+};
+try {
+  assert.equal(await (await call('/')).text(), 'editor');
+  assert.deepEqual(await (await call('/auth/session')).json(), { user: null });
+  assert.equal((await call('/api/contents/schedules.json?ref=trmnl-schedules')).status, 401);
+  const start = await call('/auth/login');
+  const target = new URL(start.headers.get('Location'));
+  assert.equal(target.origin, 'https://github.com');
+  assert.equal(target.searchParams.get('scope'), 'public_repo');
+  assert.equal(target.searchParams.get('code_challenge_method'), 'S256');
+  const oauthCookie = start.headers.get('Set-Cookie').split(';')[0];
+  assert.match(start.headers.get('Set-Cookie'), /HttpOnly; Secure; SameSite=Lax/);
+  const bad = await call('/auth/callback?code=code&state=wrong', { headers: { Cookie: oauthCookie } });
+  assert.equal(bad.headers.get('Location'), '/?login=failed'); assert.equal(calls.length, 0);
+  const callback = await call(`/auth/callback?code=code&state=${target.searchParams.get('state')}`, { headers: { Cookie: oauthCookie } });
+  assert.equal(callback.headers.get('Location'), '/');
+  assert.ok(JSON.parse(calls[0].options.body).code_verifier);
+  const sessionCookie = callback.headers.getSetCookie().find(x => x.startsWith('__Host-trmnl_session=')).split(';')[0];
+  const headers = { Cookie: sessionCookie, Origin: env.APP_ORIGIN, 'Content-Type': 'application/json' };
+  const session = await call('/auth/session', { headers }); assert.deepEqual(await session.json(), { user: { login: 'gky501' } });
+  assert.equal((await call('/api/actions/workflows/trmnl-status.yml/dispatches', { method: 'POST', headers, body: JSON.stringify({ ref: 'main', inputs: { status_json: '{}' } }) })).status, 204);
+  assert.equal(calls.at(-1).options.headers.Authorization, 'Bearer server-only-token');
+  assert.equal((await call('/api/contents/README.md', { headers })).status, 403);
+  assert.equal((await call('/api/contents/schedules.json', { method: 'PUT', headers, body: JSON.stringify({ branch: 'main', content: 'e30=' }) })).status, 400);
+  assert.equal((await call('/api/git/refs', { method: 'POST', headers, body: JSON.stringify({ ref: 'refs/heads/main', sha: 'a'.repeat(40) }) })).status, 400);
+  assert.equal((await call('/auth/logout', { method: 'POST', headers: { ...headers, Origin: 'https://evil.test' } })).status, 403);
+  assert.equal((await call('/auth/logout', { method: 'POST', headers })).status, 204);
+  assert.deepEqual(await (await call('/auth/session', { headers })).json(), { user: null });
+  globalThis.fetch = async (url) => Response.json(url.includes('/access_token') ? { access_token: 'denied-token' } : { id: 1, login: 'other' });
+  const denied = await call(`/auth/callback?code=other&state=${target.searchParams.get('state')}`, { headers: { Cookie: oauthCookie } });
+  assert.equal(denied.headers.get('Location'), '/?login=denied'); assert.equal(db.size, 0);
+  console.log('Auth checks passed: PKCE, state, owner restriction, server-only token, session, logout, origin checks, and API restrictions.');
+} finally { globalThis.fetch = realFetch; }

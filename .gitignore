@@ -4,3 +4,7 @@ __pycache__/
 
 .schedule-state.json
 custom-status-input.json
+
+.wrangler/
+.dev.vars
+.env
