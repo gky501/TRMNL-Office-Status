@@ -1,0 +1,17 @@
+name = "trmnl-office-status"
+main = "auth/worker.mjs"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./docs"
+binding = "ASSETS"
+run_worker_first = ["/auth/*", "/api/*"]
+
+[vars]
+APP_ORIGIN = "https://trmnl-office-status.aaron-b6e.workers.dev"
+GITHUB_CLIENT_ID = "Ov23licfnfkxIEjkdqy3"
+ALLOWED_GITHUB_ID = "252633601"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "59fa645c04e747a3a8ed849e1d67de3e"
