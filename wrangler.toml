@@ -9,7 +9,7 @@ run_worker_first = ["/auth/*", "/api/*"]
 
 [vars]
 APP_ORIGIN = "https://trmnl-office-status.aaron-b6e.workers.dev"
-GITHUB_CLIENT_ID = "REPLACE-WITH-OAUTH-CLIENT-ID"
+GITHUB_CLIENT_ID = "Ov23licfnfkxIEjkdqy3"
 ALLOWED_GITHUB_ID = "252633601"
 
 [[kv_namespaces]]
