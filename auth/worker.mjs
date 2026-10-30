@@ -59,7 +59,8 @@ export default {
         if (githubPath === '/git/refs' && (body.ref !== 'refs/heads/trmnl-schedules' || !/^[a-f0-9]{40}$/.test(body.sha))) return json({ error: 'Invalid schedule branch.' }, 400);
         if (method === 'PUT' && (body.branch !== 'trmnl-schedules' || typeof body.content !== 'string')) return json({ error: 'Invalid schedule write.' }, 400);
       }
-      const upstream = await fetch(`https://api.github.com/repos/${REPO}${githubPath}${url.search}`, { method, redirect: 'error', headers: { Authorization: `Bearer ${session.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'TRMNL-Office-Status', 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+      const upstream = await fetch(`https://api.github.com/repos/${REPO}${githubPath}${url.search}`, { method, redirect: 'manual', headers: { Authorization: `Bearer ${session.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'TRMNL-Office-Status', 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+      if (upstream.status >= 300 && upstream.status < 400) return json({ error: 'GitHub redirected the request unexpectedly. Check the configured repository.' }, 502);
       if (upstream.status === 401) { await env.SESSIONS.delete(sid); return json({ error: 'Your GitHub login expired. Sign in again.' }, 401); }
       return new Response(upstream.status === 204 ? null : await upstream.text(), { status: upstream.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
     } catch { return json({ error: 'Could not complete the request. Please try again.' }, 502); }
