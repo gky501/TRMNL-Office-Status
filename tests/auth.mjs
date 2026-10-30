@@ -6,6 +6,7 @@ const call = (path, options = {}) => worker.fetch(new Request(env.APP_ORIGIN + p
 const realFetch = globalThis.fetch;
 let calls = [];
 globalThis.fetch = async (url, options) => {
+  assert.notEqual(options.redirect, 'error', 'Cloudflare Workers does not support redirect: error');
   calls.push({ url, options });
   if (url.includes('/access_token')) return Response.json({ access_token: 'server-only-token' });
   if (url.endsWith('/user')) return Response.json({ id: 252633601, login: 'gky501' });
