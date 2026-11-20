@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   scheduled-status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
